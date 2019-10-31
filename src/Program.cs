@@ -21,38 +21,41 @@ namespace CompilerASM
                                div  a, 2
                                ret";
 
-            var codes = CreateListOfCode(assemblyCode);
-
+            var codes = CreateListOfCode2(assemblyCode);
         }
 
-        //TODO: refactor this method
-        static List<(string, string)> CreateListOfCode(string assemblyCode)
+        static IDictionary<string, List<string>> CreateListOfCode2(string assemblyCode)
         {
             var codeLines = CreateCodeLines(assemblyCode);
-            var functions = new StringBuilder();
-            var codes = new List<(string, string)>();
+            var codes = new Dictionary<string, List<string>>();
+            var main = new List<string>();
+            var functions = new List<string>();
 
-            foreach (var line in codeLines)
+            foreach (var codeLine in codeLines)
             {
-                if (line.Contains(":") || !string.IsNullOrWhiteSpace(functions.ToString()))
+                if (codeLine.Contains(":") || functions.Any())
                 {
-                    functions.AppendLine(line);
+                    /// TODO
+                    functions.Add(codeLine);
 
-                    if (line.Contains("ret"))
+                    if (codeLine.Contains("ret"))
                     {
-                        codes.Add((GetFirstWord(functions.ToString()), functions.ToString()));
+                        codes.Add("functions", functions);
                         functions.Clear();
                     }
                 }
                 else
                 {
-                    codes.Add((GetFirstWord(line), line));
+                    main.Add(codeLine);
                 }
+
             }
+
+            codes.Add("main", main);
 
             return codes;
         }
-
+        
         static string[] CreateCodeLines(string assemblyCode) => assemblyCode.Split('\n');
         static string GetFirstWord(string words) => words.Split(' ', StringSplitOptions.RemoveEmptyEntries).First();
     }
