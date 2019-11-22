@@ -10,7 +10,6 @@ namespace CompilerASM
         static void Main(string[] args)
         {
             var assemblyCode = @"
-                               ; My first program
                                mov  a, 5
                                inc  a
                                call function
@@ -21,42 +20,39 @@ namespace CompilerASM
                                div  a, 2
                                ret";
 
-            var codes = CreateListOfCode2(assemblyCode);
+            var codes = CreateCode(assemblyCode);
+
+            Console.ReadKey();
         }
 
-        static IDictionary<string, List<string>> CreateListOfCode2(string assemblyCode)
+
+        static Dictionary<string, List<string>> CreateCode(string assemblyCode)
         {
-            var codeLines = CreateCodeLines(assemblyCode);
             var codes = new Dictionary<string, List<string>>();
-            var main = new List<string>();
-            var functions = new List<string>();
 
-            foreach (var codeLine in codeLines)
+            foreach (var code in CreateCodeLines(assemblyCode))
             {
-                if (codeLine.Contains(":") || functions.Any())
+                if (!string.IsNullOrWhiteSpace(code))
                 {
-                    /// TODO
-                    functions.Add(codeLine);
+                    var arguments = new List<string>();
 
-                    if (codeLine.Contains("ret"))
+                    foreach (var code2 in SplitInComma(RemoveFirstWord(code)))
                     {
-                        codes.Add("functions", functions);
-                        functions.Clear();
+                        arguments.Add(code2.Replace("\r\n", "").Replace("\r", "").Replace("\n", "").Trim());
                     }
-                }
-                else
-                {
-                    main.Add(codeLine);
-                }
 
+                    //TODO: verify if is function
+
+                    codes.Add(GetFirstWord(code), arguments);
+                }
             }
-
-            codes.Add("main", main);
 
             return codes;
         }
-        
+
         static string[] CreateCodeLines(string assemblyCode) => assemblyCode.Split('\n');
         static string GetFirstWord(string words) => words.Split(' ', StringSplitOptions.RemoveEmptyEntries).First();
+        static string RemoveFirstWord(string words) => words.Replace(GetFirstWord(words), string.Empty);
+        static string[] SplitInComma(string words) => words.Split(',');
     }
 }
